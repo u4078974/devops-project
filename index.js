@@ -4,36 +4,39 @@ import simpleGit from "simple-git";
 import random from "random";
 
 const path = "./data.json";
+const git = simpleGit();
 
 const markCommit = (x, y) => {
   const date = moment()
-    .subtract(1, "y")
-    .add(1, "d")
+    .subtract(2, "y") // Subtract 2 years from the current date
     .add(x, "w")
     .add(y, "d")
     .format();
 
-  const data = {
-    date: date,
-  };
-
+  const data = { date };
   jsonfile.writeFile(path, data, () => {
-    simpleGit().add([path]).commit(date, { "--date": date }).push();
+    git.add([path])
+      .commit(date, { "--date": date })
+      .push("origin", "main"); // Push to the main branch
   });
 };
 
 const makeCommits = (n) => {
-  if(n===0) return simpleGit().push();
+  if (n === 0) return git.push("origin", "main");
+
   const x = random.int(0, 54);
   const y = random.int(0, 6);
-  const date = moment().subtract(1, "y").add(1, "d").add(x, "w").add(y, "d").format();
+  const date = moment()
+    .subtract(2, "y") // Ensure starting point is 2 years back
+    .add(x, "w")
+    .add(y, "d")
+    .format();
 
-  const data = {
-    date: date,
-  };
-  console.log(date);
+  const data = { date };
+  console.log(`Creating commit for date: ${date}`);
   jsonfile.writeFile(path, data, () => {
-    simpleGit().add([path]).commit(date, { "--date": date },makeCommits.bind(this,--n));
+    git.add([path])
+      .commit(date, { "--date": date }, () => makeCommits(n - 1));
   });
 };
 
